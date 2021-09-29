@@ -1,38 +1,49 @@
-import { Fragment } from "react";
-import { Route, useParams, Link, useRouteMatch } from "react-router-dom";
+import { Fragment, useEffect } from "react";
+import { useParams, Route, Link, useRouteMatch } from "react-router-dom";
 
-import Comments from "../components/comments/Comments";
 import HighlightedQuote from "../components/quotes/HighlightedQuote";
+import Comments from "../components/comments/Comments";
+import useHttp from "../hooks/use-http";
+import { getSingleQuote } from "../lib/api";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
 
-const DUMMY_DATA = [
-  {
-    id: "q1",
-    author: "John",
-    text: "Learnig react is fun!",
-  },
-  {
-    id: "q2",
-    author: "Max",
-    text: "Learnig javascript is fun!",
-  },
-];
-
-const QuotesDetail = () => {
-  const params = useParams();
+const QuoteDetail = () => {
   const match = useRouteMatch();
+  const params = useParams();
 
-  console.log(match);
+  const { quoteId } = params;
 
-  const quote = DUMMY_DATA.find((quote) => quote.id === params.quoteId);
+  const {
+    sendRequest,
+    status,
+    data: loadedQuote,
+    error,
+  } = useHttp(getSingleQuote, true);
 
-  if (!quote) {
-    return "No quotes found!";
+  useEffect(() => {
+    sendRequest(quoteId);
+  }, [sendRequest, quoteId]);
+
+  if (status === "pending") {
+    return (
+      <div className="centered">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="centered">{error}</p>;
+  }
+
+  if (!loadedQuote.text) {
+    return <p>No quote found!</p>;
   }
 
   return (
     <Fragment>
-      <HighlightedQuote text={quote.text} author={quote.author} />
-      <Route path={`${match.path}`} exact>
+      <HighlightedQuote text={loadedQuote.text} author={loadedQuote.author} />
+      <Route path={match.path} exact>
         <div className="centered">
           <Link className="btn--flat" to={`${match.url}/comments`}>
             Load Comments
@@ -46,4 +57,4 @@ const QuotesDetail = () => {
   );
 };
 
-export default QuotesDetail;
+export default QuoteDetail;

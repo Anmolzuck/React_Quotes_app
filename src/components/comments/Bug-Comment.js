@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import classes from "./Comments.module.css";
@@ -10,23 +10,22 @@ import CommentsList from "./CommentsList";
 
 const Comments = () => {
   const [isAddingComment, setIsAddingComment] = useState(false);
-  const params = useParams();
 
+  const params = useParams;
   const { quoteId } = params;
+  console.log(quoteId);
 
-  const { sendRequest, status, data: loadedComments } = useHttp(getAllComments);
+  const { sendRequest, status, data: laodedComments } = useHttp(getAllComments);
 
   useEffect(() => {
     sendRequest(quoteId);
-  }, [quoteId, sendRequest]);
+  }, [sendRequest, quoteId]);
 
   const startAddCommentHandler = () => {
     setIsAddingComment(true);
   };
 
-  const addedCommentHandler = useCallback(() => {
-    sendRequest(quoteId);
-  }, [sendRequest, quoteId]);
+  const addCommentHandler = () => {};
 
   let comments;
 
@@ -38,15 +37,15 @@ const Comments = () => {
     );
   }
 
-  if (status === "completed" && loadedComments && loadedComments.length > 0) {
-    comments = <CommentsList comments={loadedComments} />;
+  if (status === "completed" && laodedComments && laodedComments.length > 0) {
+    comments = <CommentsList commnets={laodedComments} />;
   }
 
   if (
     status === "completed" &&
-    (!loadedComments || loadedComments.length === 0)
+    (!laodedComments || laodedComments.length === 0)
   ) {
-    comments = <p className="centered">No comments were added yet!</p>;
+    comments = <p className="centered">Be the first one to comment!</p>;
   }
 
   return (
@@ -58,10 +57,7 @@ const Comments = () => {
         </button>
       )}
       {isAddingComment && (
-        <NewCommentForm
-          quoteId={quoteId}
-          onAddedComment={addedCommentHandler}
-        />
+        <NewCommentForm quoteId={quoteId} onAdded={addCommentHandler} />
       )}
       {comments}
     </section>
